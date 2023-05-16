@@ -39,20 +39,12 @@ class POCPlugin
         add_action('admin_menu', [$this, 'poc_plugin_menu']);
 
         add_action('init', [$this, 'interact_with_theme_elements']);
-        add_shortcode('my_button', [$this, 'shortcode_button']);
+        add_shortcode('shortcode_button', [$this, 'shortcode_button']);
 
         add_action('wp_footer', [$this, 'load_scripts']);
+
     }
 
-    public function create_custom_post_type() {
-        $args = array(
-            'public' => true,
-            'label'  => 'Contact Forms',
-            'supports' => array( 'title', 'custom-fields' ),
-        );
-    
-        register_post_type( 'simple_contact_form', $args );
-    }
 
     function load_assets()
     {
@@ -132,15 +124,21 @@ class POCPlugin
         //init a database to store a count
         global $wpdb;
 
-        $shortcodeHeader = "<h2>Clicker Button</h2><p>Click the button to increment the count.</p><p>This uses a simple rest api with database storage</p>";
+        $shortcodeHeader = "
+            <div class='container'>
+                <h2>Clicker Button</h2>
+                <p>Click the button to increment the count.</p>
+                <p>This uses a simple rest api with database storage</p>
+        ";
 
         //get the current count from the database
         $count = intval($wpdb->get_var("SELECT count FROM $this->db_table_name WHERE id=1"));
 
         //return the updated count and button
-        $button = "<button id='clicker_button' class='my-button-class'>Count: " . $count . "</button>";
+        $button = "<button id='clicker_button' class='my-button-class'>Count: " . $count . "</button></div>";
+        $shortcodeHeader .= $button;
+
         echo $shortcodeHeader;
-        echo $button;
     }
 
     public function shortcode_db()
@@ -159,7 +157,6 @@ class POCPlugin
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
     }
-
 
     public function increment_button_count()
     {
@@ -192,7 +189,6 @@ class POCPlugin
 
         $response = new WP_REST_Response($count, 200);
         return $response;
-
     }
 
     public function register_rest_api()
@@ -213,29 +209,18 @@ class POCPlugin
     // Function that holds all the interactions with the theme (head, body, footer, etc).
     public function interact_with_theme_elements()
     {
-        add_action('wp_footer', [$this, 'add_to_footer']);
-        add_action('wp_head', [$this, 'add_to_head']);
+        add_action('wp_footer', [$this, 'content_echo']);
+        add_action('wp_head', [$this, 'content_echo']);
         // interact with page body
-        add_action('wp_body_open', [$this, 'add_to_body']);
+        add_action('wp_body_open', [$this, 'content_echo']);
     }
 
-    // Individual functions to add content to the theme, could just use one return_content function.
-    public function add_to_footer()
+    // Function that adds content to whatever page the hook is called on.
+    public function content_echo()
     {
-        echo '<h1>POC Plugin Footer</h1>';
-    }
-
-    public function add_to_head()
-    {
-        echo '<h1>POC Plugin Header</h1>';
-    }
-
-    public function add_to_body()
-    {
-        echo '<h1>POC Plugin Body</h1>';
+        echo '<h1>POC Plugin Was Here</h1>';
     }
 }
-
 
 // Create an instance of the class.
 if (class_exists('POCPlugin')) {

@@ -1,41 +1,44 @@
 /* Define the styles for the <h1> tag */
 h1 {
-    font-size: 32px;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  
-  /* Define the styles for the <h2> tag */
-  h2 {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  
-  /* Define the styles for the <p> tag */
-  p {
-    font-size: 16px;
-    line-height: 1.5;
-    margin-bottom: 20px;
-  }
-  
-  /* Define the styles for the <button> tag */
-  button {
-    display: inline-block;
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: rgb(192, 192, 192);
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
 
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-  }
-  
-  /* Add hover effects for <button> */
-  button:hover{
-    background-color: #8d8d8d;
-  }
-  
+/* Define the styles for the <h2> tag */
+h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* Define the styles for the <p> tag */
+p {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+/* Define the styles for the <button> tag */
+button {
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: rgb(192, 192, 192);
+
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+  margin-bottom: 30px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
