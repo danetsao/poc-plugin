@@ -44,10 +44,9 @@ class POCPlugin
 
         add_action('init', [$this, 'interact_with_theme_elements']);
         add_shortcode('shortcode_button', [$this, 'shortcode_button']);
+        add_shortcode('book_post_shortcode', [$this, 'book_post_shortcode']);
 
         add_action('wp_footer', [$this, 'load_scripts']);
-
-
     }
 
     // Test function to interact with theme templates but idt it will work
@@ -172,7 +171,7 @@ class POCPlugin
                 });
             });
         </script>
-<?php
+    <?php
     }
 
     public function shortcode_button()
@@ -180,7 +179,7 @@ class POCPlugin
         global $wpdb;
 
         $shortcodeHeader = "
-            <div class='containerp'>
+            <div class='clicker-showcase-container'>
                 <h2>Clicker Button</h2>
                 <p>Click the button to increment the count.</p>
                 <p>This uses a simple rest api with database storage</p>
@@ -300,14 +299,14 @@ class POCPlugin
      * Adding custom post type
      * Register shortcode to display those posts
      */
-    
+
     public function create_custom_post_type()
     {
         $args = array(
             'public' => true,
             'labels' => array(
-                'name' => __( 'Book Collection' ),
-                'singular_name' => __( 'Book' )
+                'name' => __('Book Collection'),
+                'singular_name' => __('Book')
             ),
             'rewrite' => array('slug' => 'book_collection'),
             'supports' => array('title', 'editor', 'int'),
@@ -325,19 +324,31 @@ class POCPlugin
         );
 
         $loop = new WP_Query($args);
+    ?>
 
-        if ($loop->have_posts()) {
-            while ($loop->have_posts()) : $loop->the_post();
-                echo '<div class="book-post">';
-                echo '<h2>' . get_the_title() . '</h2>';
-                echo '<p>' . get_the_content() . '</p>';
-                echo '</div>';
-            endwhile;
-        } else {
-            echo 'No posts found';
-        }
+        <head>
+            <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . 'css/poc-plugin.css'; ?>">
+        </head>
+        <div class="book-collection-container">
+            <h1 class="book-collection-title">Book Collection</h1>
+            <p class="book-collection-caption">Here we are showcasing use of custom post type and the WordPress Query class.</p>
+            <div id="book-posts" class="book-posts-container">
+                <?php if ($loop->have_posts()) :
+                    while ($loop->have_posts()) : $loop->the_post(); ?>
+                        <div class="book-post">
+                            <a href="<?php echo get_permalink(); ?>">
+                                <h2 class="book-post-title"><?php echo get_the_title(); ?></h2>
+                                <div class="book-post-content"><?php echo get_the_content(); ?></div>
+                            </a>
+                        </div>
+                    <?php endwhile;
+                else : ?>
+                    <div class="no-posts-found-message">No posts found</div>
+                <?php endif; ?>
+            </div>
+        </div>
+<?php
     }
-
 
     /**
      * Adding content to the theme
