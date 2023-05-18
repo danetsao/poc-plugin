@@ -44,7 +44,6 @@ class POCPlugin
 
         add_action('init', [$this, 'interact_with_theme_elements']);
         add_shortcode('shortcode_button', [$this, 'shortcode_button']);
-        add_shortcode('shortcode_form', [$this, 'shortcode_form']);
 
         add_action('wp_footer', [$this, 'load_scripts']);
 
@@ -108,17 +107,40 @@ class POCPlugin
         if (!current_user_can('manage_options')) {
             wp_die('You do not have sufficient permissions to access this page.');
         }
-        echo '<h1>POC Plugin</h1>';
-        echo '<p>POC Plugin content.</p>';
+
+        // Define link to our 'showcase page'
+        $page_id = 65;
+        $site_url = site_url();
+        $link_url = add_query_arg(array('page_id' => $page_id), $site_url);
+        $link_html = '<a href="' . esc_url($link_url) . '">Go to Page</a>';
+
+
+        $msg =  '
+            <div>
+                <h1>POC Plugin</h1>
+                <p>POC Plugin content.</p>
+                <p>Shortcode: [shortcode_button]</p>
+                <p>Shortcode: [shortcode_form]</p>
+                <p>Count: 
+            ';
+
+        $msg .= ($this->get_button_count())->data;
+        $msg .= '
+                </p>
+            </div>';
+        $msg .= $link_html;
+
+        echo $msg;
     }
 
-    public function load_scripts() {
+    public function load_scripts()
+    {
         wp_enqueue_script('jquery');
         $rest_url = get_rest_url(null, 'poc-plugin/v1/');
-    ?>
+?>
         <script>
             var nonce = '<?php echo wp_create_nonce('wp_rest'); ?>';
-    
+
             jQuery(document).ready(function(t) {
                 t('#increment_button').click(function() {
                     jQuery.ajax({
@@ -150,34 +172,35 @@ class POCPlugin
                 });
             });
         </script>
-    <?php
+<?php
     }
-    
-    public function shortcode_button() {
+
+    public function shortcode_button()
+    {
         global $wpdb;
-    
+
         $shortcodeHeader = "
             <div class='containerp'>
                 <h2>Clicker Button</h2>
                 <p>Click the button to increment the count.</p>
                 <p>This uses a simple rest api with database storage</p>
         ";
-        
+
         $count = intval($wpdb->get_var("SELECT count FROM $this->db_table_name WHERE id=1"));
-    
+
         $increment_button = "<button id='increment_button' class='my-button-class'>Increment</button>";
         $decrement_button = "<button id='decrement_button' class='my-button-class'>Decrement</button>";
-    
+
         $count_display = '<p class="count-display">Count: ' . $count . '</p>';
-    
+
         $shortcodeHeader .= $increment_button;
         $shortcodeHeader .= $decrement_button;
         $shortcodeHeader .= $count_display;
         $shortcodeHeader .= "</div>";
-    
+
         echo $shortcodeHeader;
     }
-    
+
 
     public function shortcode_db()
     {
@@ -271,52 +294,50 @@ class POCPlugin
             'callback' => [$this, 'get-button-count'],
             'permission_callback' => '__return_true'
         ));
-
-
     }
+
     /**
      * Adding custom post type
+     * Register shortcode to display those posts
      */
+    
     public function create_custom_post_type()
     {
         $args = array(
             'public' => true,
-            'label'  => 'Plugin Reviews',
-            'supports' => array('title', 'custom-fields'),
+            'labels' => array(
+                'name' => __( 'Book Collection' ),
+                'singular_name' => __( 'Book' )
+            ),
+            'rewrite' => array('slug' => 'book_collection'),
+            'supports' => array('title', 'editor', 'int'),
         );
 
-        register_post_type('plugin_review_post', $args);
+
+        register_post_type('book_collection_post', $args);
     }
 
-    public function shortcode_form()
+    public function book_post_shortcode()
     {
-        echo '<div class="container">
-            <h2>Leave your feedback</h2>
-            <form class="simple-contact-form__form">
-                <div class="form-group mb-2">
-                    <input name="name" type="text" class="form-control" placeholder="Name">
-                </div>
-                <div class="form-group mb-2">
-                    <input name="name" type="text" class="form-control" placeholder="Details">
-                </div>
-                <div class="form-group mb-2">
-                <input type="hidden" name="star-rating" id="star-rating">
-                <label for="star-rating" class="star-rating-label">Rating</label>
-                <div class="star-rating">
-                  <span class="fa fa-star"></span>
-                  <span class="fa fa-star"></span>
-                  <span class="fa fa-star"></span>
-                  <span class="fa fa-star"></span>
-                  <span class="fa fa-star"></span>
-                </div>
-              </div>
-              
-                <div class="form-group mb-2">
-                    <button type="submit" class="btn btn-success btn-block w-100">Send</button>
-                </div>
-            </form>
-        </div>';
+        $args = array(
+            'post_type' => 'book_collection_post',
+            'posts_per_page' => 10,
+        );
+
+        $loop = new WP_Query($args);
+
+        if ($loop->have_posts()) {
+            while ($loop->have_posts()) : $loop->the_post();
+                echo '<div class="book-post">';
+                echo '<h2>' . get_the_title() . '</h2>';
+                echo '<p>' . get_the_content() . '</p>';
+                echo '</div>';
+            endwhile;
+        } else {
+            echo 'No posts found';
+        }
     }
+
 
     /**
      * Adding content to the theme
