@@ -180,9 +180,9 @@ class POCPlugin
 
         $shortcodeHeader = "
             <div class='clicker-showcase-container'>
-                <h2>Clicker Button</h2>
-                <p>Click the button to increment the count.</p>
-                <p>This uses a simple rest api with database storage</p>
+                <h1 id='title'>Clicker Button</h1>
+                <p id='caption'>Click the button to increment the count.</p>
+                <p id='caption'>This uses a simple rest api with database storage.</p>
         ";
 
         $count = intval($wpdb->get_var("SELECT count FROM $this->db_table_name WHERE id=1"));
@@ -190,7 +190,7 @@ class POCPlugin
         $increment_button = "<button id='increment_button' class='my-button-class'>Increment</button>";
         $decrement_button = "<button id='decrement_button' class='my-button-class'>Decrement</button>";
 
-        $count_display = '<p class="count-display">Count: ' . $count . '</p>';
+        $count_display = '<p id="caption" class="count-display">Count: ' . $count . '</p>';
 
         $shortcodeHeader .= $increment_button;
         $shortcodeHeader .= $decrement_button;
@@ -330,8 +330,9 @@ class POCPlugin
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . 'css/poc-plugin.css'; ?>">
         </head>
         <div class="book-collection-container">
-            <h1 class="book-collection-title">Book Collection</h1>
-            <p class="book-collection-caption">Here we are showcasing use of custom post type and the WordPress Query class.</p>
+            <h1 class="title">Book Collection</h1>
+            <p class="caption">Here we are showcasing use of custom post type and the WordPress Query class.</p>
+            <p class="caption">This is displayed through shortcode [book_post_shortcode].</p>
             <div id="book-posts" class="book-posts-container">
                 <?php if ($loop->have_posts()) :
                     while ($loop->have_posts()) : $loop->the_post(); ?>
