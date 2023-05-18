@@ -339,6 +339,7 @@ class POCPlugin
                         <div class="book-post">
                             <a href="<?php echo get_permalink(); ?>">
                                 <h2 class="book-post-title"><?php echo get_the_title(); ?></h2>
+                                <div class="book-post-meta">by <?php the_author(); ?> on <?php echo get_the_date()?>></div>
                                 <div class="book-post-content"><?php echo get_the_content(); ?></div>
                             </a>
                         </div>
