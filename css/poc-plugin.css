@@ -34,7 +34,7 @@ button {
   transition: all 0.3s ease-in-out;
 }
 
-.container {
+containerp {
   max-width: 500px;
   margin: 0 auto;
   margin-bottom: 30px;
