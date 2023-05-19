@@ -32,8 +32,8 @@ class POCPlugin
         $this->db_version = '1.0';
         $this->db_table_name = $wpdb->prefix . 'my_shortcode_db';
 
-        add_action('wp_enqueue_scripts', array($this, 'load_assets'));
-
+        add_action('wp_enqueue_scripts', array($this, 'load_scripts'));
+        // Why do we have to hook twice??
         add_action('wp_footer', [$this, 'load_scripts']);
 
         add_action('init', [$this, 'create_custom_post_type']);
@@ -45,7 +45,6 @@ class POCPlugin
         add_action('init', [$this, 'interact_with_theme_elements']);
         add_shortcode('shortcode_button', [$this, 'shortcode_button']);
         add_shortcode('book_post_shortcode', [$this, 'book_post_shortcode']);
-
     }
 
     // Test function to interact with theme templates but idt it will work
@@ -68,7 +67,123 @@ class POCPlugin
         return $template;
     }
 
-    public function load_assets()
+    // Adds a menu item to the admin dashboard.
+    public function poc_plugin_menu()
+    {
+        add_menu_page(
+            'POC Plugin Admin',
+            'POC Plugin Admin',
+            'manage_options',
+            'poc-plugin',
+            [$this, 'poc_plugin_options'],
+            'dashicons-plugins-checked'
+        );
+    }
+
+    // Displays the content of the menu.
+    public function poc_plugin_options()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+
+        // Define link to our 'showcase page'
+        // define css stylesheet
+        $css_url = "href='" . plugin_dir_url(__FILE__) . "css/poc-plugin.css'";
+?>
+
+        <head>
+            <link rel="stylesheet" href=<?php echo plugin_dir_url(__FILE__) . 'css/poc-plugin.css'; ?> </head>
+            <?php
+
+            // Define link to our 'showcase page'
+            $page_id = 65;
+            $site_url = site_url();
+            $link_url = add_query_arg(array('page_id' => $page_id), $site_url);
+            $link_html = '<a class="menu-link" href="' . esc_url($link_url) . '">Go to Showcase Page</a>';
+            // add a button and text field that can reset the button to that number
+            $count_html = '
+        <div class="menu-count-container">
+            <p class="menu-count">Set button count: </p>
+            <input type="text" id="reset_button_count" name="reset_button_count" value="0">
+            <button id="reset_button_count_button" class="button">Set</button>
+        </div>';
+            $msg =  "
+            <div class='menu-container'>
+                <h1 class='menu-title'>POC Plugin Admin</h1>
+                <p class='menu-count'>Features:</p>
+                <ul class='menu-features'>
+                    <li class='menu-feature'>Shortcode for button</li>
+                        <ul class='menu-subfeatures'>
+                            <li class='menu-subfeature'>[shortcode_button]</li>
+                            <li class='menu-subfeature'>This is a simple SQL data item count that can be updated through the shortcode, via increment or decrement, or set by admin on the admi page</span></li>
+                            <li class='menu-subfeature'>Button count:  <span id='button-count'>" . ($this->get_button_count())->data . " </span></li>
+                            <ul class='menu-subfeatures'>
+                        </ul>
+                    </ul>
+                    <li class='menu-feature'>Custom Post Type</li>
+                        <ul class='menu-subfeatures'>
+                            <li class='menu-subfeature'>I made a custom post type of book review under the book collections tab.</span></li>
+                            <li class='menu-subfeature'>These posts are displayed through the shortcode mentioned below</span></li>
+                            <ul class='menu-subfeatures'>
+                        </ul>
+                    </ul>
+                    <li class='menu-feature'>Shortcode for custom posts display</li>
+                        <ul class='menu-subfeatures'>
+                            <li class='menu-subfeature'>[custom_post_shortcode]</li>
+                            <li class='menu-subfeature'>This is a shortcode that dynamically displayed the 10 most recent posts in chronological order</span></li>
+                            <li class='menu-subfeature'>It links to individual post page to each element</span></li>
+                            <ul class='menu-subfeatures'>
+                        </ul>
+                    </ul>
+                        ";
+            $msg .= '</ul>';
+
+            $msg .= $count_html;
+
+            $msg .= '</div>';
+
+            $msg .= $link_html;
+
+            echo $msg;
+
+            wp_enqueue_script('jquery');
+            $rest_url = get_rest_url(null, 'poc-plugin/v1/');
+
+            ?>
+            <script>
+                var nonce = '<?php echo wp_create_nonce('wp_rest'); ?>';
+
+                jQuery(document).ready(function(t) {
+                    t('#reset_button_count_button').click(function() {
+                        //alert('Resetting button count to ' + t('#reset_button_count').val());
+                        var val = (t('#reset_button_count').val());
+
+                        jQuery.ajax({
+                            method: 'POST',
+                            url: '<?php echo $rest_url; ?>' + 'update-count/' + val,
+                            success: function(data) {
+                                console.log('updated count to' + val);
+                                // update text displaying the count
+                                t('#button-count').text(val);
+                            },
+                            error: function(error) {
+                                console.log(error);
+                            }
+                        });
+                    });
+                });
+            </script>
+        <?php
+    }
+
+    /**
+     * JS scripts for the showcase page, jquery for the 
+     * 
+     * I don't think we can refactor and put this in a separate file, 
+     * b/c it js (client side) can't render php (server side)
+     */
+    public function load_scripts()
     {
         // enqueue css
         wp_enqueue_style(
@@ -85,145 +200,50 @@ class POCPlugin
             '1',
             true
         );
-    }
-
-    // Adds a menu item to the admin dashboard.
-    public function poc_plugin_menu()
-    {
-        add_menu_page(
-            'POC Plugin Admin',
-            'POC Plugin Admin',
-            'manage_options',
-            'poc-plugin',
-            [$this, 'poc_plugin_options'],
-            'dashicons-plugins-checked'
-        );
-    }
-
-    // Displays the content of the menu item.
-    public function poc_plugin_options()
-    {
-        if (!current_user_can('manage_options')) {
-            wp_die('You do not have sufficient permissions to access this page.');
-        }
-        
-        // Define link to our 'showcase page'
-        // define css stylesheet
-        $css_url = "href='". plugin_dir_url(__FILE__) . "css/poc-plugin.css'";
+        wp_enqueue_script('jquery');
+        $rest_url = get_rest_url(null, 'poc-plugin/v1/');
         ?>
-        <head>
-            <link rel="stylesheet" href=<?php echo plugin_dir_url(__FILE__) . 'css/poc-plugin.css';?>
-        </head>
+            <script>
+                var nonce = '<?php echo wp_create_nonce('wp_rest'); ?>';
+
+                jQuery(document).ready(function(t) {
+                    t('#increment_button').click(function() {
+                        jQuery.ajax({
+                            method: 'POST',
+                            url: '<?php echo $rest_url; ?>' + 'click',
+                            success: function(data) {
+                                // update button with new count 
+                                var count = parseInt(data);
+                                t('#increment_button').siblings('.count-display').text('Count: ' + count);
+                            },
+                            error: function(error) {
+                                console.log(error);
+                            }
+                        });
+                    });
+                    t('#decrement_button').click(function() {
+                        jQuery.ajax({
+                            method: 'POST',
+                            url: '<?php echo $rest_url; ?>' + 'unclick',
+                            success: function(data) {
+                                // update button with new count 
+                                var count = parseInt(data);
+                                t('#increment_button').siblings('.count-display').text('Count: ' + count);
+                            },
+                            error: function(error) {
+                                console.log(error);
+                            }
+                        });
+                    });
+                });
+            </script>
         <?php
-
-        // Define link to our 'showcase page'
-        $page_id = 65;
-        $site_url = site_url();
-        $link_url = add_query_arg(array('page_id' => $page_id), $site_url);
-        $link_html = '<a class="menu-link" href="' . esc_url($link_url) . '">Go to Showcase Page</a>';
-        // add a button and text field that can reset the button to that number
-        $count_html = '
-        <div class="menu-count-container">
-            <p class="menu-count">Reset button count to: </p>
-            <input type="text" id="reset_button_count" name="reset_button_count" value="0">
-            <button id="reset_button_count_button" class="button button-primary">Reset</button>
-        </div>';
-        $msg =  "
-            <div class='menu-container'>
-                <h1 class='menu-title'>POC Plugin Admin</h1>
-                <p class='menu-count'>Features:</p>
-                <ul class='menu-features'>
-                    <li class='menu-feature'>Shortcode [shortcode_button]: adds a button to your page</li>
-                    <li class='menu-feature'>Shortcode [shortcode_form]: adds a form to your page</li>
-                    <li class='menu-feature'>Button count: <span id='button-count'>";
-        $msg .= ($this->get_button_count())->data;
-        $msg .= '</span>';
-        $msg .= '
-                    </li>
-                </ul>';
-        $msg .= $count_html;
-        $msg .= '
-            </div>';
-        $msg .= $link_html;
-
-        echo $msg;
-
-        wp_enqueue_script('jquery');
-        $rest_url = get_rest_url(null, 'poc-plugin/v1/');
-
-        ?>
-        <script>
-            var nonce = '<?php echo wp_create_nonce('wp_rest'); ?>';
-
-            jQuery(document).ready(function(t) {
-                t('#reset_button_count_button').click(function() {
-                    //alert('Resetting button count to ' + t('#reset_button_count').val());
-                    var val = (t('#reset_button_count').val());
-
-                    jQuery.ajax({
-                        method: 'POST',
-                        url: '<?php echo $rest_url; ?>' + 'update-count/' + val,
-                        success: function(data) {
-                            console.log('updated count to' + val);
-                            // update text displaying the count
-                            t('#button-count').text(val);
-                        },
-                        error: function(error) {
-                            console.log(error);
-                        }
-                    });
-                });
-            });
-        </script>
-<?php
-    }
-
-
-    public function load_scripts()
-    {
-        wp_enqueue_script('jquery');
-        $rest_url = get_rest_url(null, 'poc-plugin/v1/');
-?>
-        <script>
-            var nonce = '<?php echo wp_create_nonce('wp_rest'); ?>';
-
-            jQuery(document).ready(function(t) {
-                t('#increment_button').click(function() {
-                    jQuery.ajax({
-                        method: 'POST',
-                        url: '<?php echo $rest_url; ?>' + 'click',
-                        success: function(data) {
-                            // update button with new count 
-                            var count = parseInt(data);
-                            t('#increment_button').siblings('.count-display').text('Count: ' + count);
-                        },
-                        error: function(error) {
-                            console.log(error);
-                        }
-                    });
-                });
-                t('#decrement_button').click(function() {
-                    jQuery.ajax({
-                        method: 'POST',
-                        url: '<?php echo $rest_url; ?>' + 'unclick',
-                        success: function(data) {
-                            // update button with new count 
-                            var count = parseInt(data);
-                            t('#increment_button').siblings('.count-display').text('Count: ' + count);
-                        },
-                        error: function(error) {
-                            console.log(error);
-                        }
-                    });
-                });
-            });
-        </script>
-    <?php
     }
 
     public function shortcode_button()
     {
         global $wpdb;
+        $count = intval($wpdb->get_var("SELECT count FROM $this->db_table_name WHERE id=1"));
 
         $shortcodeHeader = "
             <div class='clicker-showcase-container'>
@@ -231,18 +251,12 @@ class POCPlugin
                 <p id='caption'>Click the button to increment the count.</p>
                 <p id='caption'>This uses a simple rest api with database storage.</p>
         ";
-
-        $count = intval($wpdb->get_var("SELECT count FROM $this->db_table_name WHERE id=1"));
-
         $increment_button = "<button id='increment_button' class='my-button-class'>Increment</button>";
         $decrement_button = "<button id='decrement_button' class='my-button-class'>Decrement</button>";
-
         $count_display = '<p id="caption" class="count-display">Count: ' . $count . '</p>';
 
-        $shortcodeHeader .= $increment_button;
-        $shortcodeHeader .= $decrement_button;
-        $shortcodeHeader .= $count_display;
-        $shortcodeHeader .= "</div>";
+        $shortcodeHeader = $shortcodeHeader . $increment_button . $decrement_button . $count_display . "</div>";
+
 
         echo $shortcodeHeader;
     }
@@ -251,8 +265,8 @@ class POCPlugin
     {
         //init a database to store a count
         global $wpdb;
-
         $charset_collate = $wpdb->get_charset_collate();
+
         $sql = "CREATE TABLE $this->db_table_name (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             count mediumint(9) NOT NULL,
@@ -264,17 +278,18 @@ class POCPlugin
         dbDelta($sql);
     }
 
+    /**
+     * Functions to handle the rest api
+     * Can refactor in furutre to reduce code duplication
+     * They are essentially doing same thing but with slight variations
+     */
     public function increment_button_count()
     {
-        //init a database to store a count
         global $wpdb;
-        //get the current count from the database
         $count = intval($wpdb->get_var("SELECT count FROM $this->db_table_name WHERE id=1"));
 
-        //increment the count
         $count++;
 
-        //update the count in the database
         $wpdb->update(
             $this->db_table_name,
             array('count' => $count),
@@ -282,18 +297,14 @@ class POCPlugin
         );
 
         $response = new WP_REST_Response($count, 200);
-
         return $response;
     }
 
     public function decrement_button_count()
     {
-        //init a database to store a count
         global $wpdb;
-        //get the current count from the database
         $count = intval($wpdb->get_var("SELECT count FROM $this->db_table_name WHERE id=1"));
 
-        //increment the count
         $count--;
 
         //update the count in the database
@@ -304,22 +315,19 @@ class POCPlugin
         );
 
         $response = new WP_REST_Response($count, 200);
-
         return $response;
     }
 
     public function get_button_count()
     {
-        //init a database to store a count
         global $wpdb;
-        //get the current count from the database
         $count = intval($wpdb->get_var("SELECT count FROM $this->db_table_name WHERE id=1"));
 
         $response = new WP_REST_Response($count, 200);
         return $response;
     }
 
-    public function update_button_count($request) 
+    public function update_button_count($request)
     {
         $num = $request->get_param('num');
 
@@ -329,32 +337,35 @@ class POCPlugin
             array('count' => $num),
             array('id' => 1)
         );
+
         $response = new WP_REST_Response($num, 200);
         return $response;
     }
 
     public function register_rest_api()
     {
-        // endpoints for incrementing and getting count
+        // Increment count
         register_rest_route($this->namespace, '/click', array(
             'methods' => 'POST',
             'callback' => [$this, 'increment_button_count'],
             'permission_callback' => '__return_true'
         ));
 
+        // Decrement count
         register_rest_route($this->namespace, '/unclick', array(
             'methods' => 'POST',
             'callback' => [$this, 'decrement_button_count'],
             'permission_callback' => '__return_true'
         ));
 
+        // Get count
         register_rest_route($this->namespace, '/get-count', array(
             'methods' => 'GET',
             'callback' => [$this, 'get-button-count'],
             'permission_callback' => '__return_true'
         ));
 
-        //register rest route to update count with a new value given input
+        // Update count
         register_rest_route($this->namespace, '/update-count/(?P<num>\d+)', array(
             'methods' => 'POST',
             'callback' => array($this, 'update_button_count'),
@@ -398,43 +409,41 @@ class POCPlugin
         );
 
         $loop = new WP_Query($args);
-    ?>
+        ?>
 
-        <head>
-            <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . 'css/poc-plugin.css'; ?>">
-        </head>
-        <div class="book-collection-container">
-            <h1 class="title">Book Collection</h1>
-            <p class="caption">Here we are showcasing use of custom post type and the WordPress Query class.</p>
-            <p class="caption">This is displayed through shortcode [book_post_shortcode].</p>
-            <div id="book-posts" class="book-posts-container">
-                <?php if ($loop->have_posts()) :
-                    while ($loop->have_posts()) : $loop->the_post(); ?>
-                        <div class="book-post">
-                            <a href="<?php echo get_permalink(); ?>">
-                                <h2 class="book-post-title"><?php echo get_the_title(); ?></h2>
-                                <div class="book-post-meta">by <?php the_author(); ?> on <?php echo get_the_date() ?></div>
-                                <div class="book-post-content"><?php echo get_the_content(); ?></div>
-                            </a>
-                        </div>
-                    <?php endwhile;
-                else : ?>
-                    <div class="no-posts-found-message">No posts found</div>
-                <?php endif; ?>
+            <head>
+                <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . 'css/poc-plugin.css'; ?>">
+            </head>
+            <div class="book-collection-container">
+                <h1 class="title">Book Collection</h1>
+                <p class="caption">Here we are showcasing use of custom post type and the WordPress Query class.</p>
+                <p class="caption">This is displayed through shortcode [book_post_shortcode].</p>
+                <div id="book-posts" class="book-posts-container">
+                    <?php if ($loop->have_posts()) :
+                        while ($loop->have_posts()) : $loop->the_post(); ?>
+                            <div class="book-post">
+                                <a href="<?php echo get_permalink(); ?>">
+                                    <h2 class="book-post-title"><?php echo get_the_title(); ?></h2>
+                                    <div class="book-post-meta">by <?php the_author(); ?> on <?php echo get_the_date() ?></div>
+                                    <div class="book-post-content"><?php echo get_the_content(); ?></div>
+                                </a>
+                            </div>
+                        <?php endwhile;
+                    else : ?>
+                        <div class="no-posts-found-message">No posts found</div>
+                    <?php endif; ?>
+                </div>
             </div>
-        </div>
-<?php
+    <?php
     }
 
     /**
-     * Adding content to the theme
-     * ie. header, footer, body
+     * Adding content to the different wp theme elements
      */
     public function interact_with_theme_elements()
     {
         add_action('wp_footer', [$this, 'content_echo']);
         add_action('wp_head', [$this, 'content_echo']);
-        // interact with page body
         add_action('wp_body_open', [$this, 'content_echo']);
     }
 

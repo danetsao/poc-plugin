@@ -123,10 +123,11 @@ a:hover {
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
 }
 
 .menu-title {
-  font-size: 36px;
+  font-size: 40px;
   text-align: center;
   margin-top: 0;
   margin-bottom: 20px;
@@ -134,21 +135,21 @@ a:hover {
 }
 
 .menu-content {
-  font-size: 20px;
+  font-size: 30px;
   font-weight: bold;
   color: #333;
   margin-bottom: 10px;
 }
 
 .menu-shortcode {
-  font-size: 18px;
+  font-size: 28px;
   color: #555;
   margin-bottom: 5px;
 }
 
 .menu-count {
   font-weight: bold;
-  font-size: 20px;
+  font-size: 36px;
   color: #555;
   margin-bottom: 20px;
 }
@@ -156,14 +157,62 @@ a:hover {
 .menu-link {
   display: block;
   margin-top: 20px;
-  font-size: 16px;
+  font-size: 24px;
   text-align: center;
-  color: #3498db;
+  color: #000000;
   text-decoration: none;
   padding-bottom: 5px;
   transition: border-bottom-color 0.3s ease-in-out;
 }
 
 .menu-link:hover {
-  border-bottom-color: #2578a9;
+  border-bottom-color: #7c7b7b;
+}
+
+.menu-feature {
+  font-size: 20px;
+  align-items: left;
+  justify-content: left;
+  margin-bottom: 50px;
+}
+
+.menu-subfeature {
+  font-size: 14px;
+  display: flex;
+  align-items: left;
+  justify-content: left;
+  margin-bottom: 30px;
+}
+ul.menu-feature {
+  list-style: none;
+  margin: 10px;
+  padding: 0;
+}
+
+ul.menu-features > li {
+  margin: 10px 0;
+}
+
+ul.menu-subfeatures {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 20px;
+}
+
+ul.menu-subfeatures > li {
+  margin: 5px 0;
+}
+
+ul.menu-subfeatures > li:before {
+  content: "•";
+  color: #333;
+  font-size: 20px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+span.menu-subfeature {
+  font-weight: bold;
+  margin-bottom: 20px;
 }
