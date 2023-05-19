@@ -32,13 +32,13 @@ class POCPlugin
         $this->db_version = '1.0';
         $this->db_table_name = $wpdb->prefix . 'my_shortcode_db';
 
+        add_action('wp_enqueue_scripts', array($this, 'load_assets'));
+
+        add_action('wp_footer', [$this, 'load_scripts']);
+
         add_action('init', [$this, 'create_custom_post_type']);
 
-
-
         add_action('rest_api_init', array($this, 'register_rest_api'));
-
-        add_action('wp_enqueue_scripts', array($this, 'load_assets'));
 
         add_action('admin_menu', [$this, 'poc_plugin_menu']);
 
@@ -46,7 +46,6 @@ class POCPlugin
         add_shortcode('shortcode_button', [$this, 'shortcode_button']);
         add_shortcode('book_post_shortcode', [$this, 'book_post_shortcode']);
 
-        add_action('wp_footer', [$this, 'load_scripts']);
     }
 
     // Test function to interact with theme templates but idt it will work
@@ -111,35 +110,72 @@ class POCPlugin
         // Define link to our 'showcase page'
         // define css stylesheet
         $css_url = "href='". plugin_dir_url(__FILE__) . "css/poc-plugin.css'";
-        $css_head = 
-        '<head>
-            <link rel="stylesheet" <?php echo css_url;?>
-        </head>';
-        echo $css_head;
+        ?>
+        <head>
+            <link rel="stylesheet" href=<?php echo plugin_dir_url(__FILE__) . 'css/poc-plugin.css';?>
+        </head>
+        <?php
 
         // Define link to our 'showcase page'
         $page_id = 65;
         $site_url = site_url();
         $link_url = add_query_arg(array('page_id' => $page_id), $site_url);
-        $link_html = '<a class="menu-link" href="' . esc_url($link_url) . '">Go to Page</a>';
-
+        $link_html = '<a class="menu-link" href="' . esc_url($link_url) . '">Go to Showcase Page</a>';
+        // add a button and text field that can reset the button to that number
+        $count_html = '
+        <div class="menu-count-container">
+            <p class="menu-count">Reset button count to: </p>
+            <input type="text" id="reset_button_count" name="reset_button_count" value="0">
+            <button id="reset_button_count_button" class="button button-primary">Reset</button>
+        </div>';
         $msg =  "
             <div class='menu-container'>
                 <h1 class='menu-title'>POC Plugin Admin</h1>
-                <p class='menu-content'>Features:</p>
+                <p class='menu-count'>Features:</p>
                 <ul class='menu-features'>
                     <li class='menu-feature'>Shortcode [shortcode_button]: adds a button to your page</li>
                     <li class='menu-feature'>Shortcode [shortcode_form]: adds a form to your page</li>
-                    <li class='menu-feature'>Button count: ";
+                    <li class='menu-feature'>Button count: <span id='button-count'>";
         $msg .= ($this->get_button_count())->data;
+        $msg .= '</span>';
         $msg .= '
                     </li>
-                </ul>
+                </ul>';
+        $msg .= $count_html;
+        $msg .= '
             </div>';
         $msg .= $link_html;
 
-
         echo $msg;
+
+        wp_enqueue_script('jquery');
+        $rest_url = get_rest_url(null, 'poc-plugin/v1/');
+
+        ?>
+        <script>
+            var nonce = '<?php echo wp_create_nonce('wp_rest'); ?>';
+
+            jQuery(document).ready(function(t) {
+                t('#reset_button_count_button').click(function() {
+                    alert('Resetting button count to ' + t('#reset_button_count').val());
+                    var val = (t('#reset_button_count').val());
+
+                    jQuery.ajax({
+                        method: 'POST',
+                        url: '<?php echo $rest_url; ?>' + 'update-count/' + val,
+                        success: function(data) {
+                            console.log('updated count to' + val);
+                            // update text displaying the count
+                            t('#button-count').text(val);
+                        },
+                        error: function(error) {
+                            console.log(error);
+                        }
+                    });
+                });
+            });
+        </script>
+<?php
     }
 
 
@@ -284,6 +320,20 @@ class POCPlugin
         return $response;
     }
 
+    public function update_button_count($request) 
+    {
+        $num = $request->get_param('num');
+
+        global $wpdb;
+        $wpdb->update(
+            $this->db_table_name,
+            array('count' => $num),
+            array('id' => 1)
+        );
+        $response = new WP_REST_Response($num, 200);
+        return $response;
+    }
+
     public function register_rest_api()
     {
         // endpoints for incrementing and getting count
@@ -300,10 +350,18 @@ class POCPlugin
         ));
 
         register_rest_route($this->namespace, '/get-count', array(
-            'methods' => 'POST',
+            'methods' => 'GET',
             'callback' => [$this, 'get-button-count'],
             'permission_callback' => '__return_true'
         ));
+
+        //register rest route to update count with a new value given input
+        register_rest_route($this->namespace, '/update-count/(?P<num>\d+)', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'update_button_count'),
+            'permission_callback' => '__return_true'
+        ));
+        
     }
 
     /**

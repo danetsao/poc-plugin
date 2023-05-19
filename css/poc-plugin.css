@@ -16,7 +16,7 @@ p {
   margin-bottom: 20px;
 }
 
-button {
+.my-button-class {
   display: inline-block;
   padding: 10px 20px;
   font-size: 16px;
@@ -31,7 +31,7 @@ button {
   margin-bottom: 10px;
 }
 
-button:hover {
+.my-button-class:hover {
   transform: translateY(-2px);
   box-shadow: 3px 3px 8px #bbb;
   background-color: rgb(224, 224, 224);
@@ -160,7 +160,6 @@ a:hover {
   text-align: center;
   color: #3498db;
   text-decoration: none;
-  border-bottom: 1px solid #3498db;
   padding-bottom: 5px;
   transition: border-bottom-color 0.3s ease-in-out;
 }
