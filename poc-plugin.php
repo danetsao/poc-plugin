@@ -87,12 +87,13 @@ class POCPlugin
             true
         );
     }
+
     // Adds a menu item to the admin dashboard.
     public function poc_plugin_menu()
     {
         add_menu_page(
-            'POC Plugin',
-            'POC Plugin',
+            'POC Plugin Admin',
+            'POC Plugin Admin',
             'manage_options',
             'poc-plugin',
             [$this, 'poc_plugin_options'],
@@ -106,31 +107,41 @@ class POCPlugin
         if (!current_user_can('manage_options')) {
             wp_die('You do not have sufficient permissions to access this page.');
         }
+        
+        // Define link to our 'showcase page'
+        // define css stylesheet
+        $css_url = "href='". plugin_dir_url(__FILE__) . "css/poc-plugin.css'";
+        $css_head = 
+        '<head>
+            <link rel="stylesheet" <?php echo css_url;?>
+        </head>';
+        echo $css_head;
 
         // Define link to our 'showcase page'
         $page_id = 65;
         $site_url = site_url();
         $link_url = add_query_arg(array('page_id' => $page_id), $site_url);
-        $link_html = '<a href="' . esc_url($link_url) . '">Go to Page</a>';
+        $link_html = '<a class="menu-link" href="' . esc_url($link_url) . '">Go to Page</a>';
 
-
-        $msg =  '
-            <div>
-                <h1>POC Plugin</h1>
-                <p>POC Plugin content.</p>
-                <p>Shortcode: [shortcode_button]</p>
-                <p>Shortcode: [shortcode_form]</p>
-                <p>Count: 
-            ';
-
+        $msg =  "
+            <div class='menu-container'>
+                <h1 class='menu-title'>POC Plugin Admin</h1>
+                <p class='menu-content'>Features:</p>
+                <ul class='menu-features'>
+                    <li class='menu-feature'>Shortcode [shortcode_button]: adds a button to your page</li>
+                    <li class='menu-feature'>Shortcode [shortcode_form]: adds a form to your page</li>
+                    <li class='menu-feature'>Button count: ";
         $msg .= ($this->get_button_count())->data;
         $msg .= '
-                </p>
+                    </li>
+                </ul>
             </div>';
         $msg .= $link_html;
 
+
         echo $msg;
     }
+
 
     public function load_scripts()
     {
@@ -311,8 +322,6 @@ class POCPlugin
             'rewrite' => array('slug' => 'book_collection'),
             'supports' => array('title', 'editor', 'int'),
         );
-
-
         register_post_type('book_collection_post', $args);
     }
 
@@ -339,7 +348,7 @@ class POCPlugin
                         <div class="book-post">
                             <a href="<?php echo get_permalink(); ?>">
                                 <h2 class="book-post-title"><?php echo get_the_title(); ?></h2>
-                                <div class="book-post-meta">by <?php the_author(); ?> on <?php echo get_the_date()?>></div>
+                                <div class="book-post-meta">by <?php the_author(); ?> on <?php echo get_the_date() ?></div>
                                 <div class="book-post-content"><?php echo get_the_content(); ?></div>
                             </a>
                         </div>
