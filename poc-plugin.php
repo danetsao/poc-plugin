@@ -157,7 +157,7 @@ class POCPlugin
 
             jQuery(document).ready(function(t) {
                 t('#reset_button_count_button').click(function() {
-                    alert('Resetting button count to ' + t('#reset_button_count').val());
+                    //alert('Resetting button count to ' + t('#reset_button_count').val());
                     var val = (t('#reset_button_count').val());
 
                     jQuery.ajax({
@@ -246,7 +246,6 @@ class POCPlugin
 
         echo $shortcodeHeader;
     }
-
 
     public function shortcode_db()
     {
@@ -361,14 +360,22 @@ class POCPlugin
             'callback' => array($this, 'update_button_count'),
             'permission_callback' => '__return_true'
         ));
-        
+
+        /*
+        Example function to check if user is admin, but not working atm for some reason
+        function () {
+                //allow admin to edit thiss
+                $user = wp_get_current_user();
+                $roles = ( array ) $user->roles;
+                return $user->role === 'administrator';
+            }
+        */
     }
 
     /**
      * Adding custom post type
      * Register shortcode to display those posts
      */
-
     public function create_custom_post_type()
     {
         $args = array(
