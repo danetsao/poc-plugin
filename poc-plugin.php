@@ -50,7 +50,6 @@ class POCPlugin
         add_action('init', [$this, 'interact_with_theme_elements']);
         add_shortcode('shortcode_button', [$this, 'shortcode_button']);
         add_shortcode('book_post_shortcode', [$this, 'book_post_shortcode']);
-        add_action('admin_init', 'myplugin_register_settings');
     }
 
     public function modify_header_template($header)
