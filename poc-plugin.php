@@ -32,6 +32,11 @@ class POCPlugin
         $this->db_version = '1.0';
         $this->db_table_name = $wpdb->prefix . 'my_shortcode_db';
 
+        //This is the best that I could figure out for the custom header
+        add_filter('load_custom_header', '__return_true', 99);
+
+        add_filter('get_custom_header', [$this, 'modify_header_template'], 99);
+
         add_action('wp_enqueue_scripts', array($this, 'load_scripts'));
         // Why do we have to hook twice??
         add_action('wp_footer', [$this, 'load_scripts']);
@@ -45,26 +50,17 @@ class POCPlugin
         add_action('init', [$this, 'interact_with_theme_elements']);
         add_shortcode('shortcode_button', [$this, 'shortcode_button']);
         add_shortcode('book_post_shortcode', [$this, 'book_post_shortcode']);
+        add_action('admin_init', 'myplugin_register_settings');
     }
 
-    // Test function to interact with theme templates but idt it will work
-    public function custom_template_part_include($template)
+    public function modify_header_template($header)
     {
-        if (is_single() && get_post_type() == 'post') {
-            // Get the path to the template part
-            $template_file = 'templates/content-single.php';
-            $template_filename = locate_template($template_file);
-
-            // Modify the contents of the template part
-            $template_contents = file_get_contents($template_filename);
-            $template_contents = str_replace('Old Text', 'New Text', $template_contents);
-
-            // Return the modified template part contents
-            return $template_contents;
+        global $do_custom_template;
+        if ($do_custom_template) {
+            $header = 'templates/custom-header.php';
         }
 
-        // Return the original template
-        return $template;
+        return $header;
     }
 
     // Adds a menu item to the admin dashboard.
@@ -121,6 +117,14 @@ class POCPlugin
                             <ul class='menu-subfeatures'>
                         </ul>
                     </ul>
+                    <li class='menu-feature'>Toggle to render our custom-template in theme.</li>
+                        <ul class='menu-subfeatures'>
+                            <li class='menu-subfeature'>This features allows us to choose if we want to render our header.php or another template.</span></li>
+                            <li class='menu-subfeature'>This is the best current solution to modify the content such as header or roots-ualib</span></li>
+                            <ul class='menu-subfeatures'>
+                        </ul>
+                    </ul>
+                    <span class='slider round'></span>
                     <li class='menu-feature'>Custom Post Type</li>
                         <ul class='menu-subfeatures'>
                             <li class='menu-subfeature'>I made a custom post type of book review under the book collections tab.</span></li>
@@ -443,14 +447,14 @@ class POCPlugin
     public function interact_with_theme_elements()
     {
         add_action('wp_footer', [$this, 'content_echo']);
-        add_action('wp_head', [$this, 'content_echo']);
+        add_action('get_header', [$this, 'content_echo']);
         add_action('wp_body_open', [$this, 'content_echo']);
     }
 
     // Function that adds content to whatever page the hook is called on.
     public function content_echo()
     {
-        echo '<h1>POC Plugin content.</h1>';
+        echo '<h1>POC Plugin</h1>';
     }
 }
 
