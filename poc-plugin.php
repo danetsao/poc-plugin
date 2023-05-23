@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Plugin Name: POC Plugin
  * Description: A proof of concept plugin to interact with roots-ualib-theme.
@@ -35,6 +34,8 @@ class POCPlugin
         //This is the best that I could figure out for the custom header
         add_filter('load_custom_header', '__return_true', 99);
 
+        add_action('rest_api_init', array($this, 'register_rest_api'));
+
         add_filter('get_custom_header', [$this, 'modify_header_template'], 99);
 
         add_action('wp_enqueue_scripts', array($this, 'load_scripts'));
@@ -42,8 +43,6 @@ class POCPlugin
         add_action('wp_footer', [$this, 'load_scripts']);
 
         add_action('init', [$this, 'create_custom_post_type']);
-
-        add_action('rest_api_init', array($this, 'register_rest_api'));
 
         add_action('admin_menu', [$this, 'poc_plugin_menu']);
 
@@ -54,8 +53,7 @@ class POCPlugin
 
     public function modify_header_template($header)
     {
-        global $do_custom_template;
-        if ($do_custom_template) {
+        if (false) {
             $header = 'templates/custom-header.php';
         }
 
@@ -266,7 +264,6 @@ class POCPlugin
 
     public function shortcode_db()
     {
-        //init a database to store a count
         global $wpdb;
         $charset_collate = $wpdb->get_charset_collate();
 
@@ -275,7 +272,6 @@ class POCPlugin
             count mediumint(9) NOT NULL,
             PRIMARY KEY  (id)
         ) $charset_collate;";
-        // query to make id 1 of count 0
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
@@ -375,21 +371,33 @@ class POCPlugin
             'permission_callback' => '__return_true'
         ));
 
-        /*
-        Example function to check if user is admin, but not working atm for some reason
-        function () {
-                //allow admin to edit thiss
-                $user = wp_get_current_user();
-                $roles = ( array ) $user->roles;
-                return $user->role === 'administrator';
-            }
-        */
+        // Register api endpoint to fetch the template from plugin
+        register_rest_route($this->namespace, '/get-template', array(
+            'methods' => 'GET',
+            'permission_callback' => '__return_true',
+            'callback' => array($this, 'myplugin_get_template_html'),
+        ) );
+
     }
+
+    public function myplugin_get_template_html( $request ) {
+        $template_filename = '_ualib-home.tpl.html';
+        // Load the template HTML from a file or database
+        $template_html = file_get_contents(  get_stylesheet_directory() . '/assets/js/' .  $template_filename );
+
+        // replace some content in the template, replace this <a href="/#/news-exhibits" class="more-link">More News</a>
+        // with this <a href="/#/news-exhibits" class="more-link">More News MODIFIED</a>
+        $template_html = str_replace( '<a href="/#/news-exhibits" class="more-link">More News</a>', '<a href="/#/news-exhibits" class="more-link">More News MODIFIED</a>', $template_html );
+      
+        // Return the template HTML in the REST API response
+        return new WP_REST_Response( $template_html, 200 );
+      }
 
     /**
      * Adding custom post type
      * Register shortcode to display those posts
      */
+
     public function create_custom_post_type()
     {
         $args = array(
@@ -413,7 +421,6 @@ class POCPlugin
 
         $loop = new WP_Query($args);
         ?>
-
             <head>
                 <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . 'css/poc-plugin.css'; ?>">
             </head>
@@ -449,6 +456,8 @@ class POCPlugin
         add_action('get_header', [$this, 'content_echo']);
         add_action('wp_body_open', [$this, 'content_echo']);
     }
+
+
 
     // Function that adds content to whatever page the hook is called on.
     public function content_echo()
