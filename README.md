@@ -22,6 +22,8 @@ A wordpress plugin to interact with the [UA Libraries Theme](https://github.com/
 
 ![Admin Menu](https://github.com/danetsao/poc-plugin/blob/main/images/poc-plugin-showcase-page.jpg)
 
+![Admin Menu](https://github.com/danetsao/poc-plugin/blob/main/images/poc-plugin-showcase-page2.jpg)
+
 ### Admin Menu
 
 ![Admin Menu](https://github.com/danetsao/poc-plugin/blob/main/images/poc-plugin-admin-page.jpg)
