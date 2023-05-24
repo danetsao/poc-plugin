@@ -27,3 +27,17 @@ A wordpress plugin to interact with the [UA Libraries Theme](https://github.com/
 ### Admin Menu
 
 ![Admin Menu](https://github.com/danetsao/poc-plugin/blob/main/images/poc-plugin-admin-page.jpg)
+
+
+## Installation
+
+Install this plugin.
+
+This assumes you have wordpress running locally. If not see [here](https://www.hostinger.com/tutorials/install-wordpress-locally).
+
+Go into you local wordpress folder and go into the plugin folder.
+
+```bash
+    git clone https://github.com/danetsao/poc-plugin.git
+```
+Then start up wordpress with your server of choice and you can activate it via plugins.
