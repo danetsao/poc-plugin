@@ -102,13 +102,6 @@ class POCPlugin
                             <ul class='menu-subfeatures'>
                         </ul>
                     </ul>
-                    <li class='menu-feature'>Toggle to render our custom-template in theme.</li>
-                        <ul class='menu-subfeatures'>
-                            <li class='menu-subfeature'>This features allows us to choose if we want to render our header.php or another template.</span></li>
-                            <li class='menu-subfeature'>This is the best current solution to modify the content such as header or roots-ualib</span></li>
-                            <ul class='menu-subfeatures'>
-                        </ul>
-                    </ul>
                     <span class='slider round'></span>
                     <li class='menu-feature'>Custom Post Type</li>
                         <ul class='menu-subfeatures'>
