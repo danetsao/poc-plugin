@@ -32,11 +32,8 @@ class POCPlugin
         $this->db_table_name = $wpdb->prefix . 'my_shortcode_db';
 
         //This is the best that I could figure out for the custom header
-        add_filter('load_custom_header', '__return_true', 99);
 
         add_action('rest_api_init', array($this, 'register_rest_api'));
-
-        add_filter('get_custom_header', [$this, 'modify_header_template'], 99);
 
         add_action('wp_enqueue_scripts', array($this, 'load_scripts'));
         // Why do we have to hook twice??
@@ -49,15 +46,6 @@ class POCPlugin
         add_action('init', [$this, 'interact_with_theme_elements']);
         add_shortcode('shortcode_button', [$this, 'shortcode_button']);
         add_shortcode('book_post_shortcode', [$this, 'book_post_shortcode']);
-    }
-
-    public function modify_header_template($header)
-    {
-        if (false) {
-            $header = 'templates/custom-header.php';
-        }
-
-        return $header;
     }
 
     // Adds a menu item to the admin dashboard.
@@ -371,27 +359,7 @@ class POCPlugin
             'permission_callback' => '__return_true'
         ));
 
-        // Register api endpoint to fetch the template from plugin
-        register_rest_route($this->namespace, '/get-template', array(
-            'methods' => 'GET',
-            'permission_callback' => '__return_true',
-            'callback' => array($this, 'myplugin_get_template_html'),
-        ) );
-
     }
-
-    public function myplugin_get_template_html( $request ) {
-        $template_filename = '_ualib-home.tpl.html';
-        // Load the template HTML from a file or database
-        $template_html = file_get_contents(  get_stylesheet_directory() . '/assets/js/' .  $template_filename );
-
-        // replace some content in the template, replace this <a href="/#/news-exhibits" class="more-link">More News</a>
-        // with this <a href="/#/news-exhibits" class="more-link">More News MODIFIED</a>
-        $template_html = str_replace( '<a href="/#/news-exhibits" class="more-link">More News</a>', '<a href="/#/news-exhibits" class="more-link">More News MODIFIED</a>', $template_html );
-      
-        // Return the template HTML in the REST API response
-        return new WP_REST_Response( $template_html, 200 );
-      }
 
     /**
      * Adding custom post type
@@ -457,8 +425,6 @@ class POCPlugin
         add_action('wp_body_open', [$this, 'content_echo']);
     }
 
-
-
     // Function that adds content to whatever page the hook is called on.
     public function content_echo()
     {
@@ -467,6 +433,7 @@ class POCPlugin
 }
 
 // Create an instance of the class.
-if (class_exists('POCPlugin')) {
+if (class_exists('POCPlugin'))
+{
     $POCPlugin = new POCPlugin();
 }
