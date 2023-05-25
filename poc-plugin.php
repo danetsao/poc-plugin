@@ -413,15 +413,24 @@ class POCPlugin
      */
     public function interact_with_theme_elements()
     {
-        add_action('wp_footer', [$this, 'content_echo']);
-        add_action('get_header', [$this, 'content_echo']);
-        add_action('wp_body_open', [$this, 'content_echo']);
+        add_action('wp_footer', [$this, 'content_echo_footer']);
+        add_action('get_header', [$this, 'content_echo_header']);
+        add_action('wp_body_open', [$this, 'content_echo_body']);
     }
 
     // Function that adds content to whatever page the hook is called on.
-    public function content_echo()
+
+    public function content_echo_header()
     {
-        echo '<h1>POC Plugin</h1>';
+        echo '<h1>POC Plugin Header</h1>';
+    }
+    public function content_echo_footer()
+    {
+        echo '<h1>POC Plugin Footer</h1>';
+    }
+    public function content_echo_body()
+    {
+        echo '<h1>POC Plugin Body</h1>';
     }
 }
 

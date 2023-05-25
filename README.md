@@ -32,6 +32,12 @@ A wordpress plugin to interact with the [UA Libraries Theme](https://github.com/
 
 ![Admin Menu](https://github.com/danetsao/poc-plugin/blob/main/images/poc-plugin-custom-post-type.jpg)
 
+### Adding Content to Header and Footer
+
+![Header](https://github.com/danetsao/poc-plugin/blob/main/images/poc-plugin-header.jpg)
+
+![Footer](https://github.com/danetsao/poc-plugin/blob/main/images/poc-plugin-footer.jpg)
+
 
 ## Installation
 
