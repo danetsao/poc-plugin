@@ -337,6 +337,28 @@ class POCPlugin
         return $response;
     }
 
+    public function get_custom_post($request) {
+        $id = $request->get_param('id');
+        $args = array(
+            'post_type' => 'book_collection_post',
+            'posts_per_page' => 10,
+        );
+
+        $loop = new WP_Query($args);
+        $posts = $loop->posts;
+
+        // Loop through posts and find the one with the matching id
+        foreach ($posts as $post) {
+            if ($post->ID == $id) {
+                $response = new WP_REST_Response($post, 200);
+                return $response;
+            }
+        }
+        $post = -1;
+        $response = new WP_REST_Response($post, 200);
+        return $response;
+    }
+
     public function register_rest_api()
     {
         // Increment count
@@ -373,8 +395,12 @@ class POCPlugin
             'permission_callback' => '__return_true'
         ));
 
+        register_rest_route($this->namespace, '/custom-post/(?P<id>\d+)', array(
+            'methods' => 'Get',
+            'callback' => [$this, 'get_custom_post'],
+            'permission_callback' => '__return_true'
+        ));
     }
-
 
     /**
      * Adding custom post type
